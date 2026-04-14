@@ -1,0 +1,167 @@
+// ===============================================================
+// Assumed Data Model
+// ===============================================================
+//
+// Collection: users
+// Document ID: {userId}
+// Fields:
+//   - uid: string (required) - Firebase Auth UID
+//   - displayName: string (optional)
+//   - email: string (required, email)
+//   - photoURL: string (optional, uri)
+//   - role: string (required, enum: ['admin', 'customer'])
+//   - createdAt: timestamp (required)
+//
+// Collection: menu
+// Document ID: {itemId}
+// Fields:
+//   - name: string (required)
+//   - description: string (optional)
+//   - price: number (required, positive)
+//   - category: string (required, enum: ['Starters', 'Main Course', 'Desserts', 'Drinks'])
+//   - cuisine: string (optional)
+//   - image: string (optional, uri)
+//   - rating: number (optional)
+//   - ratingCount: number (optional)
+//
+// Collection: reservations
+// Document ID: {reservationId}
+// Fields:
+//   - userId: string (optional) - UID if logged in
+//   - name: string (required)
+//   - email: string (required, email)
+//   - phone: string (required)
+//   - date: string (required, ISO date)
+//   - time: string (required)
+//   - guests: number (required, positive)
+//   - status: string (required, enum: ['pending', 'confirmed', 'cancelled'])
+//   - createdAt: timestamp (required)
+//
+// Collection: reviews
+// Document ID: {reviewId}
+// Fields:
+//   - userId: string (required)
+//   - userName: string (required)
+//   - userPhoto: string (optional, uri)
+//   - rating: number (required, 1-5)
+//   - comment: string (required, < 1000 chars)
+//   - dishId: string (optional)
+//   - createdAt: timestamp (required)
+//
+// ===============================================================
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          (request.auth.token.email == "kafalsapps@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isValidUrl(url) {
+      return url is string && (url.matches("^https://.*") || url.matches("^http://.*"));
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidUser(data) {
+      return data.uid is string &&
+             data.email is string && isValidEmail(data.email) &&
+             data.role in ['admin', 'customer'] &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidMenuItem(data) {
+      return data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             data.price is number && data.price > 0 &&
+             data.category in ['Starters', 'Main Course', 'Desserts', 'Drinks'] &&
+             (!('image' in data) || isValidUrl(data.image));
+    }
+
+    function isValidReservation(data) {
+      return data.name is string && data.name.size() > 0 &&
+             data.email is string && isValidEmail(data.email) &&
+             data.phone is string && data.phone.size() >= 7 &&
+             data.date is string &&
+             data.time is string &&
+             data.guests is number && data.guests > 0 &&
+             data.status in ['pending', 'confirmed', 'cancelled'] &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidReview(data) {
+      return data.userId is string && data.userId == request.auth.uid &&
+             data.userName is string &&
+             data.rating is number && data.rating >= 1 && data.rating <= 5 &&
+             data.comment is string && data.comment.size() > 0 && data.comment.size() < 1000 &&
+             data.createdAt is timestamp;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isAuthenticated() && isValidUser(request.resource.data) && 
+                    ((isOwner(userId) && request.resource.data.role == 'customer') || isAdmin());
+      allow update: if isAuthenticated() && isValidUser(request.resource.data) && 
+                    ((isOwner(userId) && request.resource.data.role == resource.data.role) || isAdmin());
+    }
+
+    match /menu/{itemId} {
+      allow read: if true;
+      allow write: if isAdmin() && isValidMenuItem(request.resource.data);
+    }
+
+    match /reservations/{reservationId} {
+      allow read: if isAdmin() || (isAuthenticated() && resource.data.userId == request.auth.uid);
+      allow create: if isValidReservation(request.resource.data) && 
+                    (!('userId' in request.resource.data) || request.resource.data.userId == request.auth.uid);
+      allow update: if isAdmin() || (isAuthenticated() && resource.data.userId == request.auth.uid && 
+                    isValidReservation(request.resource.data) && 
+                    request.resource.data.status == resource.data.status); // Users can't change status themselves unless they are admin? 
+                    // Actually, users might want to cancel.
+      allow update: if (isAdmin() && isValidReservation(request.resource.data)) || 
+                    (isAuthenticated() && resource.data.userId == request.auth.uid && 
+                     isValidReservation(request.resource.data) && 
+                     (request.resource.data.status == 'cancelled' || request.resource.data.status == resource.data.status));
+    }
+
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && isValidReview(request.resource.data);
+      allow update: if isAuthenticated() && resource.data.userId == request.auth.uid && isValidReview(request.resource.data);
+      allow delete: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+    }
+
+    // Default deny
+    match /{path=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,84 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "displayName": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "photoURL": { "type": "string", "format": "uri" },
+        "role": { "type": "string", "enum": ["admin", "customer"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "MenuItem": {
+      "title": "MenuItem",
+      "description": "A dish or drink on the menu",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "price": { "type": "number" },
+        "category": { "type": "string", "enum": ["Starters", "Main Course", "Desserts", "Drinks"] },
+        "cuisine": { "type": "string" },
+        "image": { "type": "string", "format": "uri" },
+        "rating": { "type": "number" },
+        "ratingCount": { "type": "number" }
+      },
+      "required": ["name", "price", "category"]
+    },
+    "Reservation": {
+      "title": "Reservation",
+      "description": "Table reservation request",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "phone": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "time": { "type": "string" },
+        "guests": { "type": "number" },
+        "status": { "type": "string", "enum": ["pending", "confirmed", "cancelled"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "date", "time", "guests", "status"]
+    },
+    "Review": {
+      "title": "Review",
+      "description": "Customer review",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userPhoto": { "type": "string", "format": "uri" },
+        "rating": { "type": "number" },
+        "comment": { "type": "string" },
+        "dishId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "rating", "comment", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile documents"
+    },
+    "/menu": {
+      "schema": "MenuItem",
+      "description": "Collection of menu items"
+    },
+    "/reservations/{reservationId}": {
+      "schema": "Reservation",
+      "description": "Table reservations"
+    },
+    "/reviews/{reviewId}": {
+      "schema": "Review",
+      "description": "Customer reviews"
+    }
+  }
+}

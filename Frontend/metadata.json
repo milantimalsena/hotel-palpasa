@@ -1,0 +1,13 @@
+{
+  "name": "Hotel Palpasa",
+  "description": "Premium dining experience in Itahari, Nepal. Highly-rated restaurant featuring AC rooms, balcony dining, and private party cabins.",
+  "requestFramePermissions": [
+    "geolocation"
+  ],
+  "majorCapabilities": [
+    "User Authentication",
+    "Online Reservations",
+    "Real-time Reviews",
+    "Menu Filtering"
+  ]
+}
