@@ -32,7 +32,7 @@ const Home = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <div className="inline-flex items-center space-x-2 bg-palpasa-pink/20 backdrop-blur-md border border-palpasa-pink/30 px-4 py-1 rounded-full mb-6">
+            <div className="inline-flex items-center space-x-2 bg-palpasa-green/15 border border-palpasa-pink/30 px-4 py-1 rounded-full mb-6">
               <Star className="w-4 h-4 text-palpasa-pink fill-palpasa-pink" />
               <span className="text-palpasa-pink text-sm font-medium tracking-wider uppercase">4.8/5 Rated Excellence</span>
             </div>
@@ -44,12 +44,16 @@ const Home = () => {
               Discover a world of exquisite flavors, cozy ambiance, and unparalleled hospitality at Hotel Palpasa.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button asChild size="lg" className="luxury-button text-lg px-8 py-6">
-                <Link to="/contact">Reserve a Table</Link>
-              </Button>
-              <Button asChild variant="outline" size="lg" className="bg-white/10 backdrop-blur-md border-white/30 text-white hover:bg-white/20 text-lg px-8 py-6">
-                <Link to="/menu">View Menu</Link>
-              </Button>
+              <Link to="/contact">
+                <Button size="lg" className="luxury-button text-lg px-8 py-6">
+                  Reserve a Table
+                </Button>
+              </Link>
+              <Link to="/menu">
+                <Button variant="outline" size="lg" className="bg-white/10 backdrop-blur-md border-white/30 text-white hover:bg-white/20 text-lg px-8 py-6">
+                  View Menu
+                </Button>
+              </Link>
             </div>
           </motion.div>
         </div>
@@ -155,9 +159,9 @@ const Home = () => {
                     <span className="font-medium">Exceptional hospitality that makes you feel at home</span>
                   </li>
                 </ul>
-                <Button asChild className="luxury-button px-8">
-                  <Link to="/about">Learn More About Us</Link>
-                </Button>
+                <Link to="/about" className="inline-block luxury-button px-8 py-2">
+                  Learn More About Us
+                </Link>
               </motion.div>
             </div>
           </div>
@@ -221,9 +225,11 @@ const Home = () => {
             Join us for an unforgettable dining experience. Book your table now or explore our diverse menu.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-            <Button asChild size="lg" className="bg-palpasa-green text-white hover:bg-palpasa-orange px-10 py-7 text-lg font-bold rounded-full">
-              <Link to="/contact">Book a Table Now</Link>
-            </Button>
+            <Link to="/contact">
+              <Button size="lg" className="bg-palpasa-green text-white hover:bg-palpasa-orange px-10 py-7 text-lg font-bold rounded-full">
+                Book a Table Now
+              </Button>
+            </Link>
             <Link to="/menu" className="flex items-center space-x-2 text-palpasa-orange hover:text-palpasa-pink transition-colors font-medium text-lg">
               <span>View Full Menu</span>
               <ArrowRight size={20} />
